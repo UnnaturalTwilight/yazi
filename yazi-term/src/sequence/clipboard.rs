@@ -41,14 +41,24 @@ impl Display for DisablePasteEvents {
 }
 
 /// Read data from clipboard: `OSC 5522 ; type=read ; <base64 MIME list> ST`
-pub struct ReadClipboard<M>(pub M);
+pub struct ReadClipboard<'a> {
+	pub mime:	&'a [u8],
+	pub pw: 	&'a [u8],
+}
 
-impl<M: Mimelist> Display for ReadClipboard<M> {
+impl Display for ReadClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let mime_list = ListClipboardMimes(self.0.clone());
-		let b64 = BASE64_SANE.encode(mime_list.to_string()).into_bytes();
-		let s = unsafe { String::from_utf8_unchecked(b64) };
-		write!(f, "\x1b]5522;type=read;{}\x1b\\", s)
+		let b64_mime = general_purpose::STANDARD.encode(self.mime).into_bytes();
+		let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
+		if self.pw.len() > 0 {
+			let b64_pw = general_purpose::STANDARD.encode(self.pw).into_bytes();
+			let pw_str = unsafe { String::from_utf8_unchecked(b64_pw) };
+			let b64_name = general_purpose::STANDARD.encode(b"Paste event").into_bytes();
+			let name_str = unsafe { String::from_utf8_unchecked(b64_name) };
+			write!(f, "\x1b]5522;type=read:pw={pw_str};name={name_str};{}", mime_str)
+		} else {
+			write!(f, "\x1b]5522;type=read;{}\x1b\\", mime_str)
+		}
 	}
 }
 
@@ -57,7 +67,7 @@ pub struct ReadClipboardMimes;
 
 impl Display for ReadClipboardMimes {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "\x1b]5522;type=read;{}\x1b\\", BASE64_SANE.encode(b"."))
+		write!(f, "\x1b]5522;type=read;{}\x1b\\", general_purpose::STANDARD.encode(b"."))
 	}
 }
 
@@ -73,12 +83,13 @@ pub struct WriteClipboard<'a> {
 
 impl Display for WriteClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let b64_mime = BASE64_SANE.encode(self.mime).into_bytes();
+		let b64_mime = general_purpose::STANDARD.encode(self.mime).into_bytes();
 		let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
+		let data = self.data;
 
 		write!(f, "\x1b]5522;type=write\x1b\\")?;
-		for (_, chunk) in self.data.chunks(4096).enumerate() {
-			let b64_chunk = BASE64_SANE.encode(chunk).into_bytes();
+		for (_, chunk) in data.chunks(4096).enumerate() {
+			let b64_chunk = general_purpose::STANDARD.encode(chunk).into_bytes();
 			let s = unsafe { String::from_utf8_unchecked(b64_chunk) };
 			write!(f, "\x1b]5522;type=wdata:mime={};{s}\x1b\\", mime_str)?;
 		}

@@ -63,7 +63,7 @@ impl Input {
 
 				let drain = snap.value.drain(start.unwrap()..end.unwrap()).collect::<String>();
 				if cut {
-					futures::executor::block_on(CLIPBOARD.set(&drain));
+					futures::executor::block_on(CLIPBOARD.set(&drain, b"text/plain"));
 				}
 
 				snap.op = InputOp::None;
@@ -76,7 +76,8 @@ impl Input {
 				let yanked = &snap.value[start.unwrap()..end.unwrap()];
 
 				snap.op = InputOp::None;
-				futures::executor::block_on(CLIPBOARD.set(yanked));
+				futures::executor::block_on(CLIPBOARD.set(yanked, b"text/plain"));
+				todo!("When?????");
 			}
 		};
 

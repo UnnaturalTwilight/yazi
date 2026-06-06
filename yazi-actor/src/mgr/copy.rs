@@ -53,7 +53,7 @@ impl Actor for Copy {
 			s.extend_from_slice(&form.separator.transform(&cx.cwd().to_strand()));
 		}
 
-		futures::executor::block_on(CLIPBOARD.set(s));
+		futures::executor::block_on(CLIPBOARD.set(s, b"text/plain"));
 		succ!();
 	}
 }

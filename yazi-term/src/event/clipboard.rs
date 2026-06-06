@@ -85,6 +85,13 @@ impl ClipboardEvent {
 		}
 	}
 
+	pub fn text(&self) -> Option<String> {
+		match self {
+			Self::ReadEnd(e) if e.mimes.0.contains("text/plain") => Some(String::from_utf8_lossy(&e.data).into_owned()),
+			_ => None,
+		}
+	}
+
 	pub fn is_mimelist(&self) -> bool {
 		match self {
 			Self::ReadEnd(e) => e.mimes == ClipboardMimeList(".".to_string()),
@@ -105,16 +112,7 @@ impl ClipboardEvent {
 	pub(crate) fn from_state(s: StateOsc5522) -> Option<Self> {
 		Some(match s.r#type.unwrap_or_default() {
 			Osc5522Type::Read if s.status == Some(Osc5522Status::OK) => {todo!("clipboard read start")}
-			// ClipboardEvent::ReadStart(ClipboardReadStart {
-			// 	pw: BASE64_SANE.decode(&s.pw).ok()?,
-			// 	name: BASE64_SANE.decode(&s.name).ok()?,
-			// 	primary: s.primary,
-			// }),
 			Osc5522Type::Read if s.status == Some(Osc5522Status::DATA) => {todo!("clipboard read start")}
-			// ClipboardEvent::ReadData(ClipboardReadData {
-			// 	mime: ClipboardMimeList::new(BASE64_SANE.decode(&s.mime).ok()?)?,
-			// 	data: BASE64_SANE.decode(&s.payload).ok()?,
-			// }),
 			Osc5522Type::Read if s.status == Some(Osc5522Status::DONE) => ClipboardEvent::ReadEnd(ClipboardData {
 				mimes: ClipboardMimeList::new(BASE64_SANE.decode(&s.mime).ok()?)?,
 				primary: s.primary,
@@ -125,6 +123,17 @@ impl ClipboardEvent {
 			Osc5522Type::Read => {
 				let (name, desc) = parse_error(s.payload)?;
 				Self::ReadError(ClipboardError { name, desc })
+			}
+			Osc5522Type::Write if s.status == Some(Osc5522Status::DONE) => ClipboardEvent::WriteSuccess(ClipboardData {
+				mimes: ClipboardMimeList::new(BASE64_SANE.decode(&s.mime).ok()?)?,
+				primary: s.primary,
+				name: BASE64_SANE.decode(&s.name).ok()?,
+				pw: BASE64_SANE.decode(&s.pw).ok()?,
+				data: BASE64_SANE.decode(&s.payload).ok()?,
+			}),
+			Osc5522Type::Write => {
+				let (name, desc) = parse_error(s.payload)?;
+				Self::WriteError(ClipboardError { name, desc })
 			}
 			_ => return None,
 		})

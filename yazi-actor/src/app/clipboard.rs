@@ -27,7 +27,9 @@ impl Actor for Clipboard {
 			runtime_scope!(LUA, "root", {
 				let root = LUA.globals().raw_get::<Table>("Root")?.call_method::<Table>("new", area)?;
 
-				if event.is_read() {
+				if event.is_mimelist() {
+					root.call_method::<()>("mimes5522", event)?;
+				} else if event.is_read() {
 					// todo!("read events")
 					root.call_method::<()>("read5522", event)?;
 				} else {

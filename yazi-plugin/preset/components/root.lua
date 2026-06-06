@@ -100,6 +100,14 @@ function Root:drop(event)
 	end
 end
 
+function Root:mimes5522(event)
+	ya.err("read5522:", tostring(event), tostring(event.type))
+	ya.err("Avalable MIMES:", event.data)
+	ya.err("primary:", event.primary)
+	ya.err("PW:", event.pw)
+	ya.err("name:", event.name)
+end
+
 function Root:read5522(event)
 	ya.err("read5522:", tostring(event), tostring(event.type))
 	ya.err("MIMES:", event.mimes)

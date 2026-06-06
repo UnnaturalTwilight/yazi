@@ -1,4 +1,3 @@
-use ratatui::symbols::line::THICK_HORIZONTAL_DOWN;
 
 use crate::{ParseError, Result, parser::{Parser, State, Osc5522Status, Osc5522Type}};
 

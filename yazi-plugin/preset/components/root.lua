@@ -101,11 +101,17 @@ function Root:drop(event)
 end
 
 function Root:mimes5522(event)
-	ya.err("read5522:", tostring(event), tostring(event.type))
+	ya.err("mimes5522:", tostring(event), tostring(event.type))
 	ya.err("Avalable MIMES:", event.data)
 	ya.err("primary:", event.primary)
 	ya.err("PW:", event.pw)
-	ya.err("name:", event.name)
+	-- ya.err("name:", event.name)
+	if event and event.pw and event.data then
+		local pasword = event.pw
+		ya.dbg("Requesting ReadClipboard")
+		rt.tty:queue("ReadClipboard", { pw = pasword })
+		rt.tty:flush()
+	end
 end
 
 function Root:read5522(event)

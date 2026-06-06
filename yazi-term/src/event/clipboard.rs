@@ -2,7 +2,7 @@ use std::str::SplitWhitespace;
 
 use base64::Engine;
 use strum::{FromRepr, IntoStaticStr};
-use yazi_shim::BASE64_SANE;
+use base64::engine::general_purpose;
 
 use crate::parser::{Osc5522Status, Osc5522Type, StateOsc5522};
 
@@ -114,22 +114,22 @@ impl ClipboardEvent {
 			Osc5522Type::Read if s.status == Some(Osc5522Status::OK) => {todo!("clipboard read start")}
 			Osc5522Type::Read if s.status == Some(Osc5522Status::DATA) => {todo!("clipboard read start")}
 			Osc5522Type::Read if s.status == Some(Osc5522Status::DONE) => ClipboardEvent::ReadEnd(ClipboardData {
-				mimes: ClipboardMimeList::new(BASE64_SANE.decode(&s.mime).ok()?)?,
+				mimes: ClipboardMimeList::new(general_purpose::STANDARD.decode(&s.mime).ok()?)?,
 				primary: s.primary,
-				name: BASE64_SANE.decode(&s.name).ok()?,
-				pw: BASE64_SANE.decode(&s.pw).ok()?,
-				data: BASE64_SANE.decode(&s.payload).ok()?,
+				name: general_purpose::STANDARD.decode(&s.name).ok()?,
+				pw: general_purpose::STANDARD.decode(&s.pw).ok()?,
+				data: general_purpose::STANDARD.decode(&s.payload).ok()?,
 			}),
 			Osc5522Type::Read => {
 				let (name, desc) = parse_error(s.payload)?;
 				Self::ReadError(ClipboardError { name, desc })
 			}
 			Osc5522Type::Write if s.status == Some(Osc5522Status::DONE) => ClipboardEvent::WriteSuccess(ClipboardData {
-				mimes: ClipboardMimeList::new(BASE64_SANE.decode(&s.mime).ok()?)?,
+				mimes: ClipboardMimeList::new(general_purpose::STANDARD.decode(&s.mime).ok()?)?,
 				primary: s.primary,
-				name: BASE64_SANE.decode(&s.name).ok()?,
-				pw: BASE64_SANE.decode(&s.pw).ok()?,
-				data: BASE64_SANE.decode(&s.payload).ok()?,
+				name: general_purpose::STANDARD.decode(&s.name).ok()?,
+				pw: general_purpose::STANDARD.decode(&s.pw).ok()?,
+				data: general_purpose::STANDARD.decode(&s.payload).ok()?,
 			}),
 			Osc5522Type::Write => {
 				let (name, desc) = parse_error(s.payload)?;

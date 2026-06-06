@@ -1,7 +1,6 @@
 use std::fmt::{self, Display};
 
 use base64::{Engine, engine::general_purpose};
-use yazi_shim::BASE64_SANE;
 
 use super::traits::Mimelist;
 
@@ -55,7 +54,7 @@ impl Display for ReadClipboard<'_> {
 			let pw_str = unsafe { String::from_utf8_unchecked(b64_pw) };
 			let b64_name = general_purpose::STANDARD.encode(b"Paste event").into_bytes();
 			let name_str = unsafe { String::from_utf8_unchecked(b64_name) };
-			write!(f, "\x1b]5522;type=read:pw={pw_str};name={name_str};{}", mime_str)
+			write!(f, "\x1b]5522;type=read:pw={}:name={};{}\x1b\\", pw_str, name_str, mime_str)
 		} else {
 			write!(f, "\x1b]5522;type=read;{}\x1b\\", mime_str)
 		}

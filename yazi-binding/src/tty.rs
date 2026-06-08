@@ -73,7 +73,6 @@ impl Tty {
 					name: &t.raw_get::<BorrowedBytes>("name")?,
 					primary: t.raw_get("primary")?,
 				};
-				tracing::debug!("{}", esc_seq.to_string().escape_debug());
 				write!(w, "{}", esc_seq)
 			}
 			b"WriteClipboard" => {

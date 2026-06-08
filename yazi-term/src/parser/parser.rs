@@ -56,6 +56,7 @@ impl Parser {
 		match &self.state {
 			State::Esc => self.emit_key(KeyCode::Escape),
 			State::Osc72(s) if s.has_more => return,
+			State::Osc5522(s) if s.has_more => return,
 			_ => {}
 		}
 

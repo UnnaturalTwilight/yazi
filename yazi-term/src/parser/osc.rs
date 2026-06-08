@@ -80,9 +80,9 @@ impl Parser {
 		}
 
 		// Limit payload size to 1MiB to prevent potential DoS
-		// if state.payload.len() + payload.len() > 1 << 20 {
-		// 	return Err(ParseError::Invalid);
-		// }
+		if state.payload.len() + payload.len() > 1 << 20 {
+			return Err(ParseError::Invalid);
+		}
 
 		state.payload.extend(payload);
 		Ok(())

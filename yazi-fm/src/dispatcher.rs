@@ -105,6 +105,7 @@ impl<'a> Dispatcher<'a> {
 	}
 
 	fn dispatch_clipboard(&mut self, clip: ClipboardEvent) -> Result<()> {
+		tracing::debug!("Clipboard event: {clip:?}");
 		if self.app.core.input.visible {
 			if let Some(text) = clip.text() {
 				self.dispatch_paste(text)?;

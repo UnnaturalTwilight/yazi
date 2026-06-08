@@ -17,5 +17,3 @@ impl FromLua for ClipboardForm {
 impl IntoLua for ClipboardForm {
 	fn into_lua(self, _: &Lua) -> mlua::Result<Value> { Err("unsupported".into_lua_err()) }
 }
-
-// TODO: lua should probaly be able to touch the clipboard in some way

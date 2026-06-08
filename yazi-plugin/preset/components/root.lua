@@ -106,10 +106,11 @@ function Root:mimes5522(event)
 	ya.err("primary:", event.primary)
 	ya.err("PW:", event.pw)
 	-- ya.err("name:", event.name)
-	if event and event.pw and event.data then
-		local pasword = event.pw
+    if event and event.pw and event.data then
+        local pasword = event.pw
+		local mimetype = "text/plain"
 		ya.dbg("Requesting ReadClipboard")
-		rt.tty:queue("ReadClipboard", { pw = pasword })
+		rt.tty:queue("ReadClipboard", { mimes = mimetype, pw = pasword })
 		rt.tty:flush()
 	end
 end

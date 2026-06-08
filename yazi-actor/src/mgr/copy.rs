@@ -17,12 +17,18 @@ impl Actor for Copy {
 		act!(mgr:escape_visual, cx)?;
 
 		let mut s = Vec::<u8>::new();
+		let mut mime = "text/plain";
 		let mut it = if form.hovered {
 			Box::new(cx.hovered().map(|h| &h.url).into_iter())
 		} else {
 			cx.tab().selected_or_hovered()
 		}
 		.peekable();
+
+		if form.r#type.as_ref() == "gnome_copied_files" {
+			mime = "x-special/gnome-copied-files";
+			s.extend_from_slice(b"copy\n");
+		}
 
 		while let Some(u) = it.next() {
 			match form.r#type.as_ref() {
@@ -41,6 +47,17 @@ impl Actor for Copy {
 				"name_without_ext" => {
 					s.extend_from_slice(&form.separator.transform(&u.stem().unwrap_or_default()));
 				}
+				"uri_list" => {
+					mime = "text/uri-list";
+					s.extend_from_slice(b"file://");
+					s.extend_from_slice(&form.separator.transform(&u.to_strand()));
+					s.push(b'\r');
+				}
+				"gnome_copied_files" => {
+					mime = "x-special/gnome-copied-files";
+					s.extend_from_slice(b"file://");
+					s.extend_from_slice(&form.separator.transform(&u.to_strand()));
+				}
 				_ => bail!("Unknown copy type: {}", form.r#type),
 			};
 			if it.peek().is_some() {
@@ -53,7 +70,7 @@ impl Actor for Copy {
 			s.extend_from_slice(&form.separator.transform(&cx.cwd().to_strand()));
 		}
 
-		futures::executor::block_on(CLIPBOARD.set(s, b"text/plain"));
+		futures::executor::block_on(CLIPBOARD.set(s, mime));
 		succ!();
 	}
 }

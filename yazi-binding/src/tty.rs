@@ -2,7 +2,7 @@ use std::io::Write;
 
 use mlua::{BorrowedBytes, ExternalError, IntoLuaMulti, Lua, MultiValue, Table, UserData, UserDataMethods};
 use yazi_shim::mlua::{ByteString, LuaTableExt};
-use yazi_term::sequence::{AgreeDrag, AgreeDrop, FinishDrop, PresentDrag, PresentDragIcon, StartDrag, StartDrop, ReadClipboard};
+use yazi_term::sequence::{AgreeDrag, AgreeDrop, FinishDrop, PresentDrag, PresentDragIcon, StartDrag, StartDrop, ReadClipboard, WriteClipboard};
 use yazi_tty::TTY;
 
 use crate::Error;
@@ -53,8 +53,15 @@ impl Tty {
 			},
 			b"ReadClipboard" => {
 				let esc_seq = ReadClipboard {
-					mime: 	b"text/plain",
+					mime:   &t.raw_get::<BorrowedBytes>("mimes")?,
 					pw:     &t.raw_get::<BorrowedBytes>("pw")?,
+				};
+				write!(w, "{}", esc_seq)
+			}
+			b"WriteClipboard" => {
+				let esc_seq = WriteClipboard {
+					mime:   &t.raw_get::<BorrowedBytes>("mime")?,
+					data:   &t.raw_get::<BorrowedBytes>("data")?,
 				};
 				write!(w, "{}", esc_seq)
 			}

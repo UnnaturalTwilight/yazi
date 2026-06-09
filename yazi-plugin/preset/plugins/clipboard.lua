@@ -1,16 +1,5 @@
 local M = {}
 
-function M.selected_uri_list()
-	local paths = {}
-	for _, u in pairs(cx.active.selected) do
-		paths[#paths + 1] = "file://" .. ya.percent_encode(tostring(u.path))
-	end
-	if #paths == 0 and cx.active.current.hovered then
-		paths[1] = "file://" .. ya.percent_encode(tostring(cx.active.current.hovered.path))
-	end
-	return paths
-end
-
 function M.copy_uri_list(list)
 	cx.tasks.behavior:reset()
 	for line in list:gmatch("[^\r\n]+") do
@@ -28,11 +17,12 @@ function M.copy_uri_list(list)
 	end
 end
 
-function M.paste_image(mime, data)
-	local type = mime:match("image/([^;]+)")
-	local dir = cx.active.current.cwd
-    local url = Url(dir .. "/pasted_image." .. type)
-	ya.err("WIP")
-end
+-- TODO !!5522!! Suport non text formats
+-- function M.paste_image(mime, data)
+-- 	local type = mime:match("image/([^;]+)")
+-- 	local dir = cx.active.current.cwd
+-- 	local url = Url(dir .. "/pasted_image." .. type)
+-- 	ya.err("WIP")
+-- end
 
 return M

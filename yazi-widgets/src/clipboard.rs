@@ -104,6 +104,7 @@ impl Clipboard {
 			.ok();
 	}
 
+	/// OSC 5522 Query MIME types
 	pub async fn query_mime_types(&self) {
 		// TODO !!5522!! don't assume support
 
@@ -114,6 +115,7 @@ impl Clipboard {
 		writef!(TTY.writer(), "{}", ReadClipboardMimes {}).ok();
 	}
 
+	/// OSC 5522 Clipboard read
 	pub async fn read(&self, mime: impl AsRef<[u8]>, pw: impl AsRef<[u8]>) {
 		// TODO !!5522!! don't assume support
 
@@ -130,6 +132,7 @@ impl Clipboard {
 		.ok();
 	}
 
+	/// OSC 5522 Clipboard write
 	pub async fn write(&self, data: impl AsRef<[ClipboardData]>) {
 		// TODO !!5522!! don't assume support
 

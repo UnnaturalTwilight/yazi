@@ -19,6 +19,13 @@ impl Display for SetClipboard {
 	}
 }
 
+/// Query OSC 5522 via DECRQM
+pub struct QueryOSC5522;
+
+impl Display for QueryOSC5522 {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "\x1b[?5522$p") }
+}
+
 /// Enable receiving unsolicited paste events via OSC 5522: `CSI ? 5522 h`
 pub struct EnablePasteEvents;
 

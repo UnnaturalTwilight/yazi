@@ -1,7 +1,7 @@
 use std::{mem, ops::Deref};
 
 use mlua::{IntoLua, UserData, UserDataFields, Value};
-use yazi_shim::{mlua::UserDataFieldsExt, strum::IntoStr};
+use yazi_shim::mlua::UserDataFieldsExt;
 use yazi_term::event::{ClipboardEvent as Inner, ClipboardRead};
 
 pub struct ClipboardEvent {
@@ -31,9 +31,6 @@ impl UserData for ClipboardEvent {
 
 		fields.add_field_method_get("primary", |_, me| Ok(me.inner.primary()));
 
-		// fields.add_field_method_get("op", |_, me|
-		// Ok(me.inner.op().map(IntoStr::into_str)));
-
 		fields.add_cached_field("mimes", |lua, me| {
 			if let Some(mimes) = me.inner.mimes() {
 				lua.create_sequence_from(mimes.iter())?.into_lua(lua)
@@ -47,8 +44,9 @@ impl UserData for ClipboardEvent {
 				.create_table_from(data.iter().map(|d| {
 					(
 						String::from_utf8_lossy(&d.mime).into_owned(),
-						String::from_utf8_lossy(&d.data).into_owned(),
+						// TODO !!5522!! Don't cast to string as it prevents suporting non text mime types
 						// mem::take(&mut d.data.clone()),
+						String::from_utf8_lossy(&d.data).into_owned(),
 					)
 				}))?
 				.into_lua(lua),

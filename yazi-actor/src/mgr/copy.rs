@@ -79,8 +79,9 @@ impl Actor for Copy {
 			}
 		}
 
-		// futures::executor::block_on(CLIPBOARD.set(s));
 		futures::executor::block_on(CLIPBOARD.write(data));
+		// TODO !!5522!! Don't assume support for OSC5522
+		// futures::executor::block_on(CLIPBOARD.set(s));
 		succ!();
 	}
 }

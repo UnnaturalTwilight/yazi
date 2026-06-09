@@ -2,8 +2,6 @@ use std::fmt::{self, Display};
 
 use base64::{Engine, engine::general_purpose};
 
-use super::traits::Mimelist;
-
 /// Set clipboard content via OSC 52
 pub struct SetClipboard {
 	content: String,
@@ -35,8 +33,8 @@ impl Display for DisablePasteEvents {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "\x1b[?5522l") }
 }
 
-/// Read data from clipboard: `OSC 5522 ; type=read : <metadata> ; <base64 MIME
-/// list> ST`
+/// Read data from clipboard:
+/// `OSC 5522 ; type=read : <metadata> ; <base64 MIME list> ST`
 pub struct ReadClipboard<'a> {
 	pub mime:    &'a [u8],
 	pub pw:      &'a [u8],
@@ -63,8 +61,8 @@ impl Display for ReadClipboard<'_> {
 	}
 }
 
-/// Read available MIME types from clipboard: `OSC 5522 ; type=read ; <base64
-/// [.]> ST`
+/// Read available MIME types from clipboard:
+/// `OSC 5522 ; type=read ; <base64 [.]> ST`
 pub struct ReadClipboardMimes;
 
 impl Display for ReadClipboardMimes {
@@ -77,7 +75,6 @@ impl Display for ReadClipboardMimes {
 /// `OSC 5522 ; type=write ST`
 /// `OSC 5522 ; type=wdata : mime=<base64 MIME type> ; <base64 data chunk> ST`
 /// `OSC 5522 ; type=wdata ST`
-// TODO: Multiple MIME types
 pub struct WriteClipboard<'a> {
 	pub data: Vec<WriteClipboardData<'a>>,
 }

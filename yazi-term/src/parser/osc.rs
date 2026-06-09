@@ -61,14 +61,19 @@ impl Parser {
 						state.has_more = true;
 					}
 					"DONE" => state.status = Some(Osc5522Status::DONE),
-					_ => todo!("Errors are not implemented"),
+					"ENOSYS" => state.status = Some(Osc5522Status::ENOSYS),
+					"EPERM" => state.status = Some(Osc5522Status::EPERM),
+					"EBUSY" => state.status = Some(Osc5522Status::EBUSY),
+					"EIO" => state.status = Some(Osc5522Status::EIO),
+					"EINVAL" => state.status = Some(Osc5522Status::EINVAL),
+					_ => return Err(ParseError::Invalid),
 				},
 				("type", v) => match v {
 					"read" => state.r#type = Some(Osc5522Type::Read),
 					"write" => state.r#type = Some(Osc5522Type::Write),
 					"wdata" => state.r#type = Some(Osc5522Type::Wdata),
 					"walias" => state.r#type = Some(Osc5522Type::Walias),
-					_ => panic!("invalid type: {v}"),
+					_ => return Err(ParseError::Invalid),
 				},
 				("loc", v) => state.primary = v == "primary",
 				("mime", v) => {
@@ -82,14 +87,16 @@ impl Parser {
 				}
 				("name", v) => state.name = v.as_bytes().to_vec(),
 				("pw", v) => state.pw = v.as_bytes().to_vec(),
-				_ => panic!("Unknown metadata: {part}"),
+				_ => {}
 			}
 		}
 
 		// Limit payload size to 1MiB to prevent potential DoS
-		// if state.payload.len() + payload.len() > 1 << 20 {
-		// return Err(ParseError::Invalid);
-		// }
+		// TODO !!5522!! CONFIG?? larger size would be required for directly pasting
+		// images/large files
+		if state.payload.len() + payload.len() > 1 << 20 {
+			return Err(ParseError::Invalid);
+		}
 
 		if state.idx >= state.payload.len() {
 			state.payload.push(payload.to_vec());

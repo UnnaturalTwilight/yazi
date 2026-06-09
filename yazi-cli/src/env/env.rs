@@ -112,7 +112,7 @@ impl Env {
 		writeln!(s, "    wl-copy/paste: {} / {}", Self::dep_version("wl-copy", "--version"), Self::dep_version("wl-paste", "--version"))?;
 		writeln!(s, "    xclip        : {}", Self::dep_version("xclip", "-version"))?;
 		writeln!(s, "    xsel         : {}", Self::dep_version("xsel", "--version"))?;
-		writeln!(s, "    OSC 5522     : {:?}", env::var_os("TERM"))?; // TODO !!5522!!
+		writeln!(s, "    OSC 5522     : {:?}", env::var_os("TERM"))?; // TODO !!5522!! suport detection
 
 		writeln!(s, "\nRoutine")?;
 		writeln!(s, "    `file -bL --mime-type`: {}", Self::file1_output())?;

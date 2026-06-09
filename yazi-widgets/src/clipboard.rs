@@ -8,6 +8,12 @@ pub struct Clipboard {
 	content: Mutex<Vec<u8>>,
 }
 
+pub struct ClipboardData {
+	pub mime:    Vec<u8>,
+	pub payload: Vec<u8>,
+	pub alias:   Vec<u8>,
+}
+
 impl Clipboard {
 	#[cfg(unix)]
 	pub async fn get(&self) -> Vec<u8> {
@@ -35,23 +41,6 @@ impl Clipboard {
 			}
 		}
 		self.content.lock().clone()
-	}
-
-	pub async fn get_mime_types(&self, mime: impl AsRef<[u8]>, pw: impl AsRef<[u8]>) {
-		// TODO !!5522!! don't assume support
-
-		use yazi_macro::writef;
-		use yazi_term::sequence::ReadClipboard;
-		use yazi_tty::TTY;
-
-		let esc_seq = ReadClipboard {
-			mime:    mime.as_ref(),
-			pw:      pw.as_ref(),
-			name:    b"yazi",
-			primary: false,
-		};
-		// panic!("{}", esc_seq.to_string().escape_debug());
-		writef!(TTY.writer(), "{}", esc_seq).ok();
 	}
 
 	#[cfg(windows)]
@@ -113,5 +102,51 @@ impl Clipboard {
 		tokio::task::spawn_blocking(move || set_clipboard_string(&String::from_utf8_lossy(&b)))
 			.await
 			.ok();
+	}
+
+	pub async fn query_mime_types(&self) {
+		// TODO !!5522!! don't assume support
+
+		use yazi_macro::writef;
+		use yazi_term::sequence::ReadClipboardMimes;
+		use yazi_tty::TTY;
+
+		writef!(TTY.writer(), "{}", ReadClipboardMimes {}).ok();
+	}
+
+	pub async fn read(&self, mime: impl AsRef<[u8]>, pw: impl AsRef<[u8]>) {
+		// TODO !!5522!! don't assume support
+
+		use yazi_macro::writef;
+		use yazi_term::sequence::ReadClipboard;
+		use yazi_tty::TTY;
+
+		writef!(TTY.writer(), "{}", ReadClipboard {
+			mime:    mime.as_ref(),
+			pw:      pw.as_ref(),
+			name:    b"yazi",
+			primary: false,
+		})
+		.ok();
+	}
+
+	pub async fn write(&self, data: impl AsRef<[ClipboardData]>) {
+		// TODO !!5522!! don't assume support
+
+		use yazi_macro::writef;
+		use yazi_term::sequence::{WriteClipboard, WriteClipboardData};
+		use yazi_tty::TTY;
+
+		let items = data
+			.as_ref()
+			.iter()
+			.map(|d| WriteClipboardData {
+				mime:    d.mime.as_ref(),
+				payload: d.payload.as_ref(),
+				alias:   d.alias.as_ref(),
+			})
+			.collect::<Vec<_>>();
+
+		writef!(TTY.writer(), "{}", WriteClipboard { data: items }).ok();
 	}
 }

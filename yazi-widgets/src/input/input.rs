@@ -77,7 +77,6 @@ impl Input {
 
 				snap.op = InputOp::None;
 				futures::executor::block_on(CLIPBOARD.set(yanked));
-				todo!("When?????");
 			}
 		};
 

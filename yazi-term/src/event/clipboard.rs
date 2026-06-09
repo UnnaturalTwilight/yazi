@@ -129,12 +129,12 @@ impl ClipboardEvent {
 				ClipboardEvent::ReadData(ClipboardRead { mimes: ClipboardMimeList::new(mimes)?, data })
 			}
 			Osc5522Type::Read => {
-				let name = parse_error()?;
+				let name = parse_error(s.status)?;
 				Self::ReadError(ClipboardError { name })
 			}
 			Osc5522Type::Write if s.status == Some(Osc5522Status::DONE) => ClipboardEvent::WriteSuccess,
 			Osc5522Type::Write => {
-				let name = parse_error()?;
+				let name = parse_error(s.status)?;
 				Self::WriteError(ClipboardError { name })
 			}
 			_ => return None,
@@ -161,6 +161,13 @@ impl ClipboardMimeList {
 }
 
 // --- Error payload parsing
-fn parse_error() -> Option<String> {
-	todo!("parse da clipboard errors");
+fn parse_error(status: Option<Osc5522Status>) -> Option<String> {
+	match status {
+		Some(Osc5522Status::ENOSYS) => Some("ENOSYS".to_string()),
+		Some(Osc5522Status::EPERM) => Some("EPERM".to_string()),
+		Some(Osc5522Status::EBUSY) => Some("EBUSY".to_string()),
+		Some(Osc5522Status::EIO) => Some("EIO".to_string()),
+		Some(Osc5522Status::EINVAL) => Some("EINVAL".to_string()),
+		_ => None,
+	}
 }

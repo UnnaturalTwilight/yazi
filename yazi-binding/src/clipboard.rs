@@ -22,8 +22,6 @@ impl UserData for ClipboardEvent {
 	fn add_fields<F: UserDataFields<Self>>(fields: &mut F) {
 		fields.add_field_method_get("type", |_, me| Ok(me.inner.r#type()));
 
-		fields.add_field_method_get("name", |_, me| Ok(me.inner.name()));
-
 		fields.add_field_method_get("pw", |_, me| Ok(me.inner.pw()));
 
 		fields.add_field_method_get("primary", |_, me| Ok(me.inner.primary()));
@@ -41,7 +39,8 @@ impl UserData for ClipboardEvent {
 				.create_table_from(data.iter().map(|d| {
 					(
 						lua.create_string(&d.mime).ok(),
-						lua.create_external_string(&*d.data).ok(), // TODO !!5522!! is this the best way
+						// TODO !!5522!! is this the best way
+						lua.create_external_string(&*d.data).ok(),
 					)
 				}))?
 				.into_lua(lua),

@@ -1,4 +1,4 @@
-use std::{fmt::format, io::{self, BufWriter, Write}, time::Duration};
+use std::{io::{self, BufWriter, Write}, time::Duration};
 
 use anyhow::Result;
 use either::Either;
@@ -69,7 +69,8 @@ impl Emulator {
 
 		let csi_16t = Self::csi_16t(&resp).unwrap_or_default();
 
-		let osc_5522 = !(resp.contains("\x1b[?5522;0$y") || resp.contains("\x1b[?5522;4$y"));
+		let osc_5522 =
+			["\x1b[?5522;1$y", "\x1b[?5522;2$y", "\x1b[?5522;3$y"].iter().any(|s| resp.contains(s));
 
 		Ok(Self {
 			kind,

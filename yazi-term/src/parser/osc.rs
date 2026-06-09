@@ -1,7 +1,7 @@
 use base64::Engine;
-use yazi_shim::BASE64_SANE;
+use yazi_shim::BASE64_PAD;
 
-use crate::{ParseError, Result, parser::{Osc5522Status, Osc5522Type, Parser, State}};
+use crate::{ParseError, Result, parser::{Osc5522Status, Parser, State}};
 
 impl Parser {
 	pub(super) fn parse_osc72(&mut self) -> Result<()> {
@@ -71,16 +71,10 @@ impl Parser {
 					"EINVAL" => state.status = Some(Osc5522Status::EINVAL),
 					_ => return Err(ParseError::Invalid),
 				},
-				("type", v) => match v {
-					"read" => state.r#type = Some(Osc5522Type::Read),
-					"write" => state.r#type = Some(Osc5522Type::Write),
-					"wdata" => state.r#type = Some(Osc5522Type::Wdata),
-					"walias" => state.r#type = Some(Osc5522Type::Walias),
-					_ => return Err(ParseError::Invalid),
-				},
+				("type", v) => state.read = v == "read",
 				("loc", v) => state.primary = v == "primary",
 				("mime", v) => {
-					let bytes = v.as_bytes().to_vec();
+					let bytes = BASE64_PAD.decode(v.as_bytes()).or(Err(ParseError::Invalid))?;
 					if state.mime.len() == 0 {
 						state.mime.push(bytes);
 					} else if state.mime[state.idx] != bytes {
@@ -88,28 +82,24 @@ impl Parser {
 						state.idx += 1;
 					}
 				}
-				("name", v) => state.name = v.as_bytes().to_vec(),
-				("pw", v) => state.pw = v.as_bytes().to_vec(),
+				("pw", v) => state.pw = BASE64_PAD.decode(v.as_bytes()).unwrap_or_default(),
 				_ => {}
 			}
 		}
 
 		// decode now since each payload may have its own padding
-		if let Ok(payload) = BASE64_SANE.decode(&payload) {
-			// Limit payload size to 1MiB to prevent potential DoS
-			// TODO !!5522!! CONFIG?? larger size would be required for directly pasting
-			// images/large files
-			if state.payload.len() + payload.len() > 1 << 20 {
-				return Err(ParseError::Invalid);
-			}
+		let payload = BASE64_PAD.decode(&payload).or(Err(ParseError::Invalid))?;
 
-			if state.idx >= state.payload.len() {
-				state.payload.push(payload.to_vec());
-			} else {
-				state.payload[state.idx].extend(payload);
-			}
-		} else {
+		// Limit payload size to 1MiB to prevent potential DoS
+		// TODO A larger size would be required for directly pasting images/large files
+		if state.payload.len() + payload.len() > 1 << 20 {
 			return Err(ParseError::Invalid);
+		}
+
+		if state.idx >= state.payload.len() {
+			state.payload.push(payload.to_vec());
+		} else {
+			state.payload[state.idx].extend(payload);
 		}
 
 		Ok(())

@@ -100,28 +100,23 @@ function Root:drop(event)
 	end
 end
 
-function Root:pasteoffer(event)
-	ya.dbg("Avalable MIMES:", event.mimes)
-	ya.dbg("primary:", event.primary)
-	ya.dbg("PW:", event.pw)
-	if event and event.pw and event.mimes then
+-- Clipboard events
+function Root:paste_offer(event)
+	if event and event.pw then
 		-- No harm in asking for unavailable types
 		local mimetypes = "text/plain text/uri-list"
-		local pasword = event.pw
-        ya.dbg("Requesting ReadClipboard")
-		rt.tty:queue("ReadClipboard", { mimes = mimetypes, pw = pasword, name = "Paste Event", primary = event.primary })
+		ya.dbg("Requesting ReadClipboard")
+		rt.tty:queue("ReadClipboard", { mimes = mimetypes, pw = event.pw, name = "Paste Event", primary = event.primary })
 		rt.tty:flush()
 	end
 end
 
-function Root:pastedata(event)
-	ya.dbg("MIMES:", event.mimes)
-	ya.dbg("DATA:", event.data)
-    if event.data["text/uri-list"] ~= nil then
-        local list = event.data["text/uri-list"]
-        ya.dbg("Pasting URI list:", list)
-        require("clipboard").copy_uri_list(list)
-    end
+function Root:paste_data(event)
+	if event.data["text/uri-list"] ~= nil then
+		local list = event.data["text/uri-list"]
+		ya.dbg("Pasting URI list:", list)
+		require("clipboard").copy_uri_list(list)
+	end
 	-- TODO !!5522!! Suport non text formats
 	-- if event.data["image/png"] ~= nil then
 	-- 	local type = "image/png"
@@ -131,4 +126,4 @@ function Root:pastedata(event)
 	-- end
 end
 
-function Root:writeresult(event) end
+function Root:write_result(event) end

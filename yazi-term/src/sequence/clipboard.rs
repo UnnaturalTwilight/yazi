@@ -1,6 +1,7 @@
 use std::fmt::{self, Display};
 
 use base64::{Engine, engine::general_purpose};
+use yazi_shim::BASE64_PAD;
 
 /// Set clipboard content via OSC 52
 pub struct SetClipboard {
@@ -51,13 +52,13 @@ pub struct ReadClipboard<'a> {
 
 impl Display for ReadClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let b64_mime = general_purpose::STANDARD.encode(self.mime).into_bytes();
+		let b64_mime = BASE64_PAD.encode(self.mime).into_bytes();
 		let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
 		let mut metadata = String::new();
 		if self.pw.len() > 0 {
-			let b64_pw = general_purpose::STANDARD.encode(self.pw).into_bytes();
+			let b64_pw = BASE64_PAD.encode(self.pw).into_bytes();
 			let pw_str = unsafe { String::from_utf8_unchecked(b64_pw) };
-			let b64_name = general_purpose::STANDARD.encode(self.name).into_bytes();
+			let b64_name = BASE64_PAD.encode(self.name).into_bytes();
 			let name_str = unsafe { String::from_utf8_unchecked(b64_name) };
 			metadata.push_str(&format!(":pw={}:name={}", pw_str, name_str));
 		}
@@ -74,7 +75,7 @@ pub struct ReadClipboardMimes;
 
 impl Display for ReadClipboardMimes {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "\x1b]5522;type=read;{}\x1b\\", general_purpose::STANDARD.encode(b"."))
+		write!(f, "\x1b]5522;type=read;{}\x1b\\", BASE64_PAD.encode(b"."))
 	}
 }
 
@@ -90,20 +91,20 @@ impl Display for WriteClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "\x1b]5522;type=write\x1b\\")?;
 		for item in &self.data {
-			let b64_mime = general_purpose::STANDARD.encode(item.mime).into_bytes();
+			let b64_mime = BASE64_PAD.encode(item.mime).into_bytes();
 			let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
 			let data = item.payload;
 
 			for (_, chunk) in data.chunks(4096).enumerate() {
-				let b64_chunk = general_purpose::STANDARD.encode(chunk).into_bytes();
+				let b64_chunk = BASE64_PAD.encode(chunk).into_bytes();
 				let s = unsafe { String::from_utf8_unchecked(b64_chunk) };
 				write!(f, "\x1b]5522;type=wdata:mime={};{s}\x1b\\", mime_str)?;
 			}
 
 			if item.alias.len() > 0 {
-				let b64_alias = general_purpose::STANDARD.encode(item.alias).into_bytes();
+				let b64_alias = BASE64_PAD.encode(item.alias).into_bytes();
 				let s = unsafe { String::from_utf8_unchecked(b64_alias) };
-				write!(f, "\x1b]5522;type=walias:mime={mime_str};{s}\x1b\\")?;
+				write!(f, "\x1b]5522;type=walias:mime={};{s}\x1b\\", mime_str)?;
 			}
 		}
 		write!(f, "\x1b]5522;type=wdata\x1b\\")

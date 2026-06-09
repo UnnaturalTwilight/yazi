@@ -17,18 +17,16 @@ function M.copy_uri_list(list)
 	end
 end
 
--- TODO !!5522!! Suport non text formats
--- function M.paste_image(mime, data)
--- 	local type = mime:match("image/([^;]+)")
--- 	local dir = cx.active.current.cwd
--- 	local url = Url(dir .. "/pasted_image." .. type)
---     -- ya.err("WIP")
---     ya.async(function()
---         local file = fs.unique("file", url)
---         if file then
---         	fs.write(file, data)
---         end
---     end)
--- end
+function M.paste_image(mime, data)
+	local type = mime:match("image/([^;]+)")
+	local dir = cx.active.current.cwd
+	local url = Url(dir .. "/pasted_image." .. type)
+	ya.async(function()
+		local file = fs.unique("file", url)
+		if file then
+			fs.write(file, data)
+		end
+	end)
+end
 
 return M

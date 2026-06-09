@@ -112,7 +112,8 @@ impl ClipboardEvent {
 						name:    general_purpose::STANDARD.decode(&s.name).ok()?,
 						pw:      general_purpose::STANDARD.decode(&s.pw).ok()?,
 						data:    ClipboardMimeList::new(
-							general_purpose::STANDARD.decode(&s.payload.first()?).ok()?,
+							s.payload.first().cloned()?,
+							// general_purpose::STANDARD.decode(&s.payload.first()?).ok()?,
 						)?,
 					}));
 				}
@@ -121,7 +122,9 @@ impl ClipboardEvent {
 				for (mime, payload) in s.mime.iter().zip(s.payload.iter()) {
 					data.push(ClipboardData {
 						mime: general_purpose::STANDARD.decode(mime).ok()?,
-						data: general_purpose::STANDARD.decode(payload).ok()?,
+						data: payload.clone(),
+						// data: general_purpose::STANDARD.decode(payload).unwrap_or(b"B64 DECODE
+						// ERROR".to_vec()),
 					});
 					mimes.extend(general_purpose::STANDARD.decode(mime).ok()?);
 					mimes.push(b' ');

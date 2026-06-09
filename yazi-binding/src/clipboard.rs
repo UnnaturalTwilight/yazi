@@ -1,4 +1,4 @@
-use std::{mem, ops::Deref};
+use std::ops::Deref;
 
 use mlua::{IntoLua, UserData, UserDataFields, Value};
 use yazi_shim::mlua::UserDataFieldsExt;
@@ -6,9 +6,6 @@ use yazi_term::event::{ClipboardEvent as Inner, ClipboardRead};
 
 pub struct ClipboardEvent {
 	inner: Inner,
-
-	v_mimes: Option<Value>,
-	v_data:  Option<mlua::Result<Value>>,
 }
 
 impl Deref for ClipboardEvent {
@@ -18,7 +15,7 @@ impl Deref for ClipboardEvent {
 }
 
 impl From<Inner> for ClipboardEvent {
-	fn from(inner: Inner) -> Self { Self { inner, v_mimes: None, v_data: None } }
+	fn from(inner: Inner) -> Self { Self { inner } }
 }
 
 impl UserData for ClipboardEvent {
@@ -43,10 +40,8 @@ impl UserData for ClipboardEvent {
 			Inner::ReadData(ClipboardRead { data, .. }) => lua
 				.create_table_from(data.iter().map(|d| {
 					(
-						String::from_utf8_lossy(&d.mime).into_owned(),
-						// TODO !!5522!! Don't cast to string as it prevents suporting non text mime types
-						// mem::take(&mut d.data.clone()),
-						String::from_utf8_lossy(&d.data).into_owned(),
+						lua.create_string(&d.mime).ok(),
+						lua.create_external_string(&*d.data).ok(), // TODO !!5522!! is this the best way
 					)
 				}))?
 				.into_lua(lua),

@@ -1,3 +1,6 @@
+use base64::Engine;
+use yazi_shim::BASE64_SANE;
+
 use crate::{ParseError, Result, parser::{Osc5522Status, Osc5522Type, Parser, State}};
 
 impl Parser {
@@ -91,17 +94,22 @@ impl Parser {
 			}
 		}
 
-		// Limit payload size to 1MiB to prevent potential DoS
-		// TODO !!5522!! CONFIG?? larger size would be required for directly pasting
-		// images/large files
-		if state.payload.len() + payload.len() > 1 << 20 {
-			return Err(ParseError::Invalid);
-		}
+		// decode now since each payload may have its own padding
+		if let Ok(payload) = BASE64_SANE.decode(&payload) {
+			// Limit payload size to 1MiB to prevent potential DoS
+			// TODO !!5522!! CONFIG?? larger size would be required for directly pasting
+			// images/large files
+			if state.payload.len() + payload.len() > 1 << 20 {
+				return Err(ParseError::Invalid);
+			}
 
-		if state.idx >= state.payload.len() {
-			state.payload.push(payload.to_vec());
+			if state.idx >= state.payload.len() {
+				state.payload.push(payload.to_vec());
+			} else {
+				state.payload[state.idx].extend(payload);
+			}
 		} else {
-			state.payload[state.idx].extend(payload);
+			return Err(ParseError::Invalid);
 		}
 
 		Ok(())

@@ -29,7 +29,7 @@ impl Utils {
 	pub(super) fn clipboard(lua: &Lua) -> mlua::Result<Function> {
 		lua.create_async_function(|lua, text: Option<String>| async move {
 			if let Some(text) = text {
-				CLIPBOARD.set(text, b"text/plain").await;
+				CLIPBOARD.set(text).await;
 				Ok(None)
 			} else {
 				Some(lua.create_external_string(CLIPBOARD.get().await)).transpose()

@@ -27,14 +27,12 @@ impl Actor for Clipboard {
 			runtime_scope!(LUA, "root", {
 				let root = LUA.globals().raw_get::<Table>("Root")?.call_method::<Table>("new", area)?;
 
-				if event.is_mimelist() {
-					root.call_method::<()>("mimes5522", event)?;
+				if event.is_paste_offer() {
+					root.call_method::<()>("pasteoffer", event)?;
 				} else if event.is_read() {
-					// todo!("read events")
-					root.call_method::<()>("read5522", event)?;
+					root.call_method::<()>("pastedata", event)?;
 				} else {
-					// todo!("write events")
-					root.call_method::<()>("write5522", event)?;
+					root.call_method::<()>("writeresult", event)?;
 				}
 
 				Ok(())

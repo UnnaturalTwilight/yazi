@@ -52,11 +52,13 @@ impl Actor for Copy {
 					s.extend_from_slice(b"file://");
 					s.extend_from_slice(&form.separator.transform(&u.to_strand()));
 					s.push(b'\r');
+					todo!("aaaaa");
 				}
 				"gnome_copied_files" => {
 					mime = "x-special/gnome-copied-files";
 					s.extend_from_slice(b"file://");
 					s.extend_from_slice(&form.separator.transform(&u.to_strand()));
+					todo!("aaaaa");
 				}
 				_ => bail!("Unknown copy type: {}", form.r#type),
 			};
@@ -70,7 +72,7 @@ impl Actor for Copy {
 			s.extend_from_slice(&form.separator.transform(&cx.cwd().to_strand()));
 		}
 
-		futures::executor::block_on(CLIPBOARD.set(s, mime));
+		futures::executor::block_on(CLIPBOARD.set(s));
 		succ!();
 	}
 }

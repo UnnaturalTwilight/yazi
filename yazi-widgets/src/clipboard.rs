@@ -14,14 +14,6 @@ impl Clipboard {
 		use tokio::process::Command;
 		use yazi_shared::in_ssh_connection;
 
-		// TODO !!5522!! don't assume support
-
-		use yazi_macro::writef;
-		use yazi_term::sequence::ReadClipboardMimes;
-		use yazi_tty::TTY;
-
-		writef!(TTY.writer(), "{}", ReadClipboardMimes).ok();
-
 		if in_ssh_connection() {
 			return self.content.lock().clone();
 		}
@@ -52,7 +44,7 @@ impl Clipboard {
 		use yazi_term::sequence::ReadClipboard;
 		use yazi_tty::TTY;
 
-		let esc_seq = ReadClipboard { mime: mime.as_ref(), pw: pw.as_ref() };
+		let esc_seq = ReadClipboard { mime: mime.as_ref(), pw: pw.as_ref(), name: b"yazi", primary: false };
 		// panic!("{}", esc_seq.to_string().escape_debug());
 		writef!(TTY.writer(), "{}", esc_seq).ok();
 	}
@@ -70,26 +62,11 @@ impl Clipboard {
 	}
 
 	#[cfg(unix)]
-	pub async fn set(&self, s: impl AsRef<[u8]>, m: impl AsRef<[u8]>) {
+	pub async fn set(&self, s: impl AsRef<[u8]>) {
 		use std::process::Stdio;
 
 		use tokio::{io::AsyncWriteExt, process::Command};
-		use yazi_macro::writef;
-		use yazi_term::sequence::SetClipboard;
-		use yazi_term::sequence::WriteClipboard;
-		use yazi_tty::TTY;
 
-		// TODO !!5522!! don't assume support
-
-		s.as_ref().clone_into(&mut self.content.lock());
-		let mime = Some(m.as_ref()).unwrap_or(b"text/plain");
-
-		let esc_seq = WriteClipboard { mime, data: s.as_ref() };
-		writef!(TTY.writer(), "{}", esc_seq).ok();
-
-		// writef!(TTY.writer(), "{}", SetClipboard::new(s.as_ref())).ok();
-
-		/*
 		let all = [
 			("pbcopy", &[][..]),
 			("termux-clipboard-set", &[]),
@@ -118,7 +95,7 @@ impl Clipboard {
 			if child.wait().await.map(|s| s.success()).unwrap_or_default() {
 				break;
 			}
-		}*/
+		}
 	}
 
 	#[cfg(windows)]

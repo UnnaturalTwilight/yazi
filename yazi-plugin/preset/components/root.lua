@@ -100,30 +100,34 @@ function Root:drop(event)
 	end
 end
 
-function Root:mimes5522(event)
-	ya.err("mimes5522:", tostring(event), tostring(event.type))
-	ya.err("Avalable MIMES:", event.data)
+function Root:pasteoffer(event)
+	ya.err("Avalable MIMES:", event.mimes)
 	ya.err("primary:", event.primary)
 	ya.err("PW:", event.pw)
 	-- ya.err("name:", event.name)
-    if event and event.pw and event.data then
-        local pasword = event.pw
-		local mimetype = "text/plain"
+	if event and event.pw and event.mimes then
+		local mimetype = "text/plain x-special/gnome-copied-files"
+		-- for _, mime in ipairs(event.mimes) do
+		-- 	if mime == "text/plain" then
+		-- 		mimetype = mime
+		-- 		break
+		-- 	end
+		-- end
+		if not mimetype then
+			return
+		end
+		local pasword = event.pw
 		ya.dbg("Requesting ReadClipboard")
-		rt.tty:queue("ReadClipboard", { mimes = mimetype, pw = pasword })
+		rt.tty:queue("ReadClipboard", { mimes = mimetype, pw = pasword, name = "Paste Event", primary = event.primary })
 		rt.tty:flush()
 	end
 end
 
-function Root:read5522(event)
-	ya.err("read5522:", tostring(event), tostring(event.type))
+function Root:pastedata(event)
 	ya.err("MIMES:", event.mimes)
 	ya.err("DATA:", event.data)
-	ya.err("primary:", event.primary)
-	ya.err("PW:", event.pw)
-	ya.err("name:", event.name)
 end
 
-function Root:write5522(event)
+function Root:writeresult(event)
 	ya.err("write5522: " .. tostring(event))
 end

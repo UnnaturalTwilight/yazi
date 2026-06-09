@@ -30,7 +30,7 @@ impl Actor for Copy {
 			_ => {}
 		}
 
-		futures::executor::block_on(CLIPBOARD.set(s, b"text/plain"));
+		futures::executor::block_on(CLIPBOARD.set(s));
 		succ!();
 	}
 }

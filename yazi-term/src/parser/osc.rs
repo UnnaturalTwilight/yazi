@@ -53,8 +53,14 @@ impl Parser {
 		for part in meta.split(':') {
 			match part.split_once('=').ok_or(ParseError::Invalid)? {
 				("status", v) => match v {
-					"OK" => state.status = Some(Osc5522Status::OK),
-					"DATA" => state.status = Some(Osc5522Status::DATA),
+					"OK" => {
+						state.status = Some(Osc5522Status::OK);
+						state.has_more = true;
+					}
+					"DATA" => {
+						state.status = Some(Osc5522Status::DATA);
+						state.has_more = true;
+					}
 					"DONE" => state.status = Some(Osc5522Status::DONE),
 					_ => todo!("Errors are not implemented")
 				},
@@ -66,21 +72,17 @@ impl Parser {
 					_ => panic!("invalid type: {v}")
 				},
 				("loc", v) => state.primary = v == "primary",
-				("mime", v) => state.mime = v.as_bytes().to_vec(),
+				("mime", v) => state.mime.extend_from_slice(v.as_bytes()),
 				("name", v) => state.name = v.as_bytes().to_vec(),
 				("pw", v) => state.pw = v.as_bytes().to_vec(),
 				_ => panic!("Unknown metadata: {part}")
 			}
 		}
 
-		if state.status == Some(Osc5522Status::OK) || state.status == Some(Osc5522Status::DATA) {
-			state.has_more = true;
-		}
-
 		// Limit payload size to 1MiB to prevent potential DoS
-		if state.payload.len() + payload.len() > 1 << 20 {
-			return Err(ParseError::Invalid);
-		}
+		// if state.payload.len() + payload.len() > 1 << 20 {
+		// 	return Err(ParseError::Invalid);
+		// }
 
 		state.payload.extend(payload);
 		Ok(())

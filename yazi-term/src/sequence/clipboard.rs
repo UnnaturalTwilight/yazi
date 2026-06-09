@@ -39,25 +39,30 @@ impl Display for DisablePasteEvents {
 	}
 }
 
-/// Read data from clipboard: `OSC 5522 ; type=read ; <base64 MIME list> ST`
+/// Read data from clipboard: `OSC 5522 ; type=read : <metadata> ; <base64 MIME list> ST`
 pub struct ReadClipboard<'a> {
-	pub mime:	&'a [u8],
-	pub pw: 	&'a [u8],
+	pub mime: &'a [u8],
+	pub pw: &'a [u8],
+	pub name: &'a [u8],
+	pub primary: bool,
 }
 
 impl Display for ReadClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		let b64_mime = general_purpose::STANDARD.encode(self.mime).into_bytes();
 		let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
+		let mut metadata = String::new();
 		if self.pw.len() > 0 {
 			let b64_pw = general_purpose::STANDARD.encode(self.pw).into_bytes();
 			let pw_str = unsafe { String::from_utf8_unchecked(b64_pw) };
-			let b64_name = general_purpose::STANDARD.encode(b"Paste event").into_bytes();
+			let b64_name = general_purpose::STANDARD.encode(self.name).into_bytes();
 			let name_str = unsafe { String::from_utf8_unchecked(b64_name) };
-			write!(f, "\x1b]5522;type=read:pw={}:name={};{}\x1b\\", pw_str, name_str, mime_str)
-		} else {
-			write!(f, "\x1b]5522;type=read;{}\x1b\\", mime_str)
+			metadata.push_str(&format!(":pw={}:name={}", pw_str, name_str));
 		}
+		if self.primary {
+			metadata.push_str(":loc=primary");
+		}
+		write!(f, "\x1b]5522;type=read{};{}\x1b\\", metadata, mime_str)
 	}
 }
 
@@ -76,39 +81,35 @@ impl Display for ReadClipboardMimes {
 /// `OSC 5522 ; type=wdata ST`
 // TODO: Multiple MIME types
 pub struct WriteClipboard<'a> {
-	pub mime: &'a [u8],
-	pub data: &'a [u8],
+	pub data: Vec<WriteClipboardData<'a>>,
 }
 
 impl Display for WriteClipboard<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let b64_mime = general_purpose::STANDARD.encode(self.mime).into_bytes();
-		let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
-		let data = self.data;
-
 		write!(f, "\x1b]5522;type=write\x1b\\")?;
-		for (_, chunk) in data.chunks(4096).enumerate() {
-			let b64_chunk = general_purpose::STANDARD.encode(chunk).into_bytes();
-			let s = unsafe { String::from_utf8_unchecked(b64_chunk) };
-			write!(f, "\x1b]5522;type=wdata:mime={};{s}\x1b\\", mime_str)?;
+		for item in &self.data {
+			let b64_mime = general_purpose::STANDARD.encode(item.mime).into_bytes();
+			let mime_str = unsafe { String::from_utf8_unchecked(b64_mime) };
+			let data = item.payload;
+
+			for (_, chunk) in data.chunks(4096).enumerate() {
+				let b64_chunk = general_purpose::STANDARD.encode(chunk).into_bytes();
+				let s = unsafe { String::from_utf8_unchecked(b64_chunk) };
+				write!(f, "\x1b]5522;type=wdata:mime={};{s}\x1b\\", mime_str)?;
+			}
+
+			if item.alias.len() > 0 {
+				let b64_alias = general_purpose::STANDARD.encode(item.alias).into_bytes();
+				let s = unsafe { String::from_utf8_unchecked(b64_alias) };
+				write!(f, "\x1b]5522;type=walias:mime={mime_str};{s}\x1b\\")?;
+			}
 		}
 		write!(f, "\x1b]5522;type=wdata\x1b\\")
 	}
 }
 
-// TODO: walias packets
-
-/// Write MIME types separated by spaces.
-struct ListClipboardMimes<M>(pub M);
-
-impl<M: Mimelist> Display for ListClipboardMimes<M> {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		for (i, m) in self.0.clone().into_iter().enumerate() {
-			if i != 0 {
-				write!(f, " ")?;
-			}
-			write!(f, "{m}")?;
-		}
-		Ok(())
-	}
+pub struct WriteClipboardData<'a> {
+	pub mime: &'a [u8],
+	pub payload: &'a [u8],
+	pub alias: &'a [u8],
 }

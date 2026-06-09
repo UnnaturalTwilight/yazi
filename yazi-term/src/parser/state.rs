@@ -1,4 +1,4 @@
-use std::{num::NonZeroU8, pin};
+use std::num::NonZeroU8;
 
 #[derive(Debug, Default, PartialEq)]
 pub(crate) enum State {

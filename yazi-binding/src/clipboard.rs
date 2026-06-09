@@ -2,7 +2,7 @@ use std::{mem, ops::Deref};
 
 use mlua::{IntoLua, UserData, UserDataFields, Value};
 use yazi_shim::{mlua::UserDataFieldsExt, strum::IntoStr};
-use yazi_term::event::{ClipboardData, ClipboardEvent as Inner};
+use yazi_term::event::{ClipboardReadData, ClipboardEvent as Inner};
 
 pub struct ClipboardEvent {
 	inner: Inner,
@@ -44,7 +44,7 @@ impl UserData for ClipboardEvent {
 		});
 
 		fields.add_cached_field_mut("data", |lua, me| match &mut me.inner {
-			Inner::ReadEnd(ClipboardData { data, .. }) => {
+			Inner::ReadData(ClipboardReadData { data, .. }) => {
 				lua.create_external_string(mem::take(data))?.into_lua(lua)
 			}
 			_ => Ok(Value::Nil),

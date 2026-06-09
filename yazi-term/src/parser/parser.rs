@@ -245,7 +245,6 @@ impl Parser {
 		if !self.seq.ends_with(b"\x1b\\") {
 			return;
 		} else if self.parse_osc5522().is_err() {
-
 			return self.reset();
 		}
 
@@ -256,6 +255,9 @@ impl Parser {
 			}
 			State::Osc5522(s) => {
 				if let Some(e) = ClipboardEvent::from_state(s) {
+					if let Some(text) = e.text() {
+						self.emit(Event::Paste(text));
+					}
 					self.emit(Event::Clipboard(e));
 				}
 				self.reset();

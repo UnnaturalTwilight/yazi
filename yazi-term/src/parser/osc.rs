@@ -72,7 +72,15 @@ impl Parser {
 					_ => panic!("invalid type: {v}")
 				},
 				("loc", v) => state.primary = v == "primary",
-				("mime", v) => state.mime.extend_from_slice(v.as_bytes()),
+				("mime", v) => {
+					let bytes = v.as_bytes().to_vec();
+					if state.mime.len() == 0 {
+						state.mime.push(bytes);
+					} else if state.mime[state.idx] != bytes {
+						state.mime.push(bytes);
+						state.idx += 1;
+					}
+				},
 				("name", v) => state.name = v.as_bytes().to_vec(),
 				("pw", v) => state.pw = v.as_bytes().to_vec(),
 				_ => panic!("Unknown metadata: {part}")
@@ -80,11 +88,16 @@ impl Parser {
 		}
 
 		// Limit payload size to 1MiB to prevent potential DoS
-		if state.payload.len() + payload.len() > 1 << 20 {
-			return Err(ParseError::Invalid);
+		// if state.payload.len() + payload.len() > 1 << 20 {
+			// return Err(ParseError::Invalid);
+		// }
+
+		if state.idx >= state.payload.len() {
+			state.payload.push(payload.to_vec());
+		} else {
+			state.payload[state.idx].extend(payload);
 		}
 
-		state.payload.extend(payload);
 		Ok(())
 	}
 }

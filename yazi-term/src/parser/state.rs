@@ -48,10 +48,11 @@ pub(crate) struct StateOsc5522 {
 	pub(crate) status:   Option<Osc5522Status>,
 	pub(crate) r#type:   Option<Osc5522Type>,
 	pub(crate) primary:  bool,
-	pub(crate) mime:     Vec<u8>,
+	pub(crate) mime:     Vec<Vec<u8>>,
+	pub(crate) payload:  Vec<Vec<u8>>,
 	pub(crate) name:     Vec<u8>,
 	pub(crate) pw:       Vec<u8>,
-	pub(crate) payload:  Vec<u8>,
+	pub(crate) idx:      usize,
 	pub(crate) has_more: bool,
 }
 

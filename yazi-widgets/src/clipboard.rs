@@ -37,14 +37,19 @@ impl Clipboard {
 		self.content.lock().clone()
 	}
 
-	pub async fn get_mime(&self, mime: impl AsRef<[u8]>, pw: impl AsRef<[u8]>) {
+	pub async fn get_mime_types(&self, mime: impl AsRef<[u8]>, pw: impl AsRef<[u8]>) {
 		// TODO !!5522!! don't assume support
 
 		use yazi_macro::writef;
 		use yazi_term::sequence::ReadClipboard;
 		use yazi_tty::TTY;
 
-		let esc_seq = ReadClipboard { mime: mime.as_ref(), pw: pw.as_ref(), name: b"yazi", primary: false };
+		let esc_seq = ReadClipboard {
+			mime:    mime.as_ref(),
+			pw:      pw.as_ref(),
+			name:    b"yazi",
+			primary: false,
+		};
 		// panic!("{}", esc_seq.to_string().escape_debug());
 		writef!(TTY.writer(), "{}", esc_seq).ok();
 	}

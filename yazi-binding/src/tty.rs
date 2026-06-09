@@ -2,10 +2,7 @@ use std::io::Write;
 
 use mlua::{BorrowedBytes, ExternalError, IntoLuaMulti, Lua, MultiValue, Table, UserData, UserDataMethods};
 use yazi_shim::mlua::{ByteString, LuaTableExt};
-use yazi_term::sequence::{
-	AgreeDrag, AgreeDrop, FinishDrop, PresentDrag, PresentDragIcon, ReadClipboard, StartDrag,
-	StartDrop, WriteClipboard, WriteClipboardData,
-};
+use yazi_term::sequence::{AgreeDrag, AgreeDrop, FinishDrop, PresentDrag, PresentDragIcon, ReadClipboard, StartDrag, StartDrop, WriteClipboard, WriteClipboardData};
 use yazi_tty::TTY;
 
 use crate::Error;
@@ -19,29 +16,21 @@ impl Tty {
 		let result = match kind {
 			b"AgreeDrag" => {
 				let it = t.raw_get::<Table>("mimes")?.sequence_iter::<ByteString>(lua).flatten();
-				write!(
-					w,
-					"{}",
-					match &*t.raw_get::<BorrowedBytes>("type")? {
-						b"copy" => AgreeDrag::Copy(it),
-						b"move" => AgreeDrag::Move(it),
-						b"either" => AgreeDrag::Either(it),
-						_ => return Err("invalid AgreeDrag type".into_lua_err()),
-					}
-				)
+				write!(w, "{}", match &*t.raw_get::<BorrowedBytes>("type")? {
+					b"copy" => AgreeDrag::Copy(it),
+					b"move" => AgreeDrag::Move(it),
+					b"either" => AgreeDrag::Either(it),
+					_ => return Err("invalid AgreeDrag type".into_lua_err()),
+				})
 			}
 			b"AgreeDrop" => {
 				let it = t.raw_get::<Table>("mimes")?.sequence_iter::<ByteString>(lua).flatten();
-				write!(
-					w,
-					"{}",
-					match &*t.raw_get::<BorrowedBytes>("type")? {
-						b"reject" => AgreeDrop::Reject,
-						b"copy" => AgreeDrop::Copy(it),
-						b"move" => AgreeDrop::Move(it),
-						_ => return Err("invalid AgreeDrop type".into_lua_err()),
-					}
-				)
+				write!(w, "{}", match &*t.raw_get::<BorrowedBytes>("type")? {
+					b"reject" => AgreeDrop::Reject,
+					b"copy" => AgreeDrop::Copy(it),
+					b"move" => AgreeDrop::Move(it),
+					_ => return Err("invalid AgreeDrop type".into_lua_err()),
+				})
 			}
 			b"StartDrag" => write!(w, "{StartDrag}"),
 			b"StartDrop" => write!(w, "{}", StartDrop(t.raw_get("idx")?)),
@@ -49,17 +38,13 @@ impl Tty {
 				write!(w, "{}", PresentDrag(t.raw_get("idx")?, &t.raw_get::<BorrowedBytes>("data")?))
 			}
 			b"PresentDragIcon" => {
-				write!(
-					w,
-					"{}",
-					PresentDragIcon {
-						format: t.raw_get("format")?,
-						opacity: t.raw_get("opacity")?,
-						width: t.raw_get("width")?,
-						height: t.raw_get("height")?,
-						data: &t.raw_get::<BorrowedBytes>("data")?,
-					}
-				)
+				write!(w, "{}", PresentDragIcon {
+					format:  t.raw_get("format")?,
+					opacity: t.raw_get("opacity")?,
+					width:   t.raw_get("width")?,
+					height:  t.raw_get("height")?,
+					data:    &t.raw_get::<BorrowedBytes>("data")?,
+				})
 			}
 			b"FinishDrop" => match &*t.raw_get::<BorrowedBytes>("type")? {
 				b"copy" => write!(w, "{}", FinishDrop::Copy),
@@ -68,9 +53,9 @@ impl Tty {
 			},
 			b"ReadClipboard" => {
 				let esc_seq = ReadClipboard {
-					mime: &t.raw_get::<BorrowedBytes>("mimes")?,
-					pw: &t.raw_get::<BorrowedBytes>("pw")?,
-					name: &t.raw_get::<BorrowedBytes>("name")?,
+					mime:    &t.raw_get::<BorrowedBytes>("mimes")?,
+					pw:      &t.raw_get::<BorrowedBytes>("pw")?,
+					name:    &t.raw_get::<BorrowedBytes>("name")?,
 					primary: t.raw_get("primary")?,
 				};
 				write!(w, "{}", esc_seq)
@@ -79,7 +64,7 @@ impl Tty {
 				let mime = &t.raw_get::<BorrowedBytes>("mime")?;
 				let payload = &t.raw_get::<BorrowedBytes>("data")?;
 				let alias = &t.raw_get::<BorrowedBytes>("alias")?;
-				write!(w, "{}", WriteClipboard { data: vec![WriteClipboardData { mime: mime, payload: payload, alias: alias }] })
+				write!(w, "{}", WriteClipboard { data: vec![WriteClipboardData { mime, payload, alias }] })
 			}
 			_ => return Err("invalid sequence kind".into_lua_err()),
 		};

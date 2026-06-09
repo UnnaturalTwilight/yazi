@@ -1,7 +1,6 @@
 use std::str::SplitWhitespace;
 
-use base64::Engine;
-use base64::engine::general_purpose;
+use base64::{Engine, engine::general_purpose};
 use strum::{FromRepr, IntoStaticStr};
 
 use crate::parser::{Osc5522Status, Osc5522Type, StateOsc5522};
@@ -24,15 +23,15 @@ pub struct ClipboardData {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ClipboardRead {
 	pub mimes: ClipboardMimeList,
-	pub data: Vec<ClipboardData>,
+	pub data:  Vec<ClipboardData>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ClipboardPaste {
 	pub primary: bool,
-	pub name: Vec<u8>,
-	pub pw: Vec<u8>,
-	pub data: ClipboardMimeList,
+	pub name:    Vec<u8>,
+	pub pw:      Vec<u8>,
+	pub data:    ClipboardMimeList,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -110,9 +109,9 @@ impl ClipboardEvent {
 				if mime == b"." {
 					return Some(ClipboardEvent::ReadMimetypes(ClipboardPaste {
 						primary: s.primary,
-						name: general_purpose::STANDARD.decode(&s.name).ok()?,
-						pw: general_purpose::STANDARD.decode(&s.pw).ok()?,
-						data: ClipboardMimeList::new(
+						name:    general_purpose::STANDARD.decode(&s.name).ok()?,
+						pw:      general_purpose::STANDARD.decode(&s.pw).ok()?,
+						data:    ClipboardMimeList::new(
 							general_purpose::STANDARD.decode(&s.payload.first()?).ok()?,
 						)?,
 					}));
@@ -147,7 +146,7 @@ impl ClipboardEvent {
 #[derive(Clone, Copy, Debug, Eq, FromRepr, IntoStaticStr, PartialEq)]
 #[repr(u8)]
 pub enum ClipboardType {
-	Read = 1,
+	Read  = 1,
 	Write = 2,
 }
 
@@ -156,13 +155,9 @@ pub enum ClipboardType {
 pub struct ClipboardMimeList(String);
 
 impl ClipboardMimeList {
-	pub fn new(b: Vec<u8>) -> Option<Self> {
-		Some(Self(String::from_utf8(b).ok()?))
-	}
+	pub fn new(b: Vec<u8>) -> Option<Self> { Some(Self(String::from_utf8(b).ok()?)) }
 
-	pub fn iter(&self) -> SplitWhitespace<'_> {
-		self.0.split_whitespace()
-	}
+	pub fn iter(&self) -> SplitWhitespace<'_> { self.0.split_whitespace() }
 }
 
 // --- Error payload parsing

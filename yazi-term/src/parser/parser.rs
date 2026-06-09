@@ -3,7 +3,7 @@ use std::{collections::VecDeque, mem, num::NonZeroU8, str};
 use yazi_shim::utf8_char_width;
 
 use super::state::State;
-use crate::event::{DndEvent, ClipboardEvent, Event, KeyCode, KeyEvent, Modifiers};
+use crate::event::{ClipboardEvent, DndEvent, Event, KeyCode, KeyEvent, Modifiers};
 
 #[derive(Debug)]
 pub struct Parser {
@@ -256,9 +256,6 @@ impl Parser {
 			}
 			State::Osc5522(s) => {
 				if let Some(e) = ClipboardEvent::from_state(s) {
-					if let Some(text) = e.text() {
-						self.emit(Event::Paste(text));
-					}
 					self.emit(Event::Clipboard(e));
 				}
 				self.reset();

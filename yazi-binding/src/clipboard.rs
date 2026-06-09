@@ -8,21 +8,17 @@ pub struct ClipboardEvent {
 	inner: Inner,
 
 	v_mimes: Option<Value>,
-	v_data: Option<mlua::Result<Value>>,
+	v_data:  Option<mlua::Result<Value>>,
 }
 
 impl Deref for ClipboardEvent {
 	type Target = Inner;
 
-	fn deref(&self) -> &Self::Target {
-		&self.inner
-	}
+	fn deref(&self) -> &Self::Target { &self.inner }
 }
 
 impl From<Inner> for ClipboardEvent {
-	fn from(inner: Inner) -> Self {
-		Self { inner, v_mimes: None, v_data: None }
-	}
+	fn from(inner: Inner) -> Self { Self { inner, v_mimes: None, v_data: None } }
 }
 
 impl UserData for ClipboardEvent {
@@ -35,7 +31,8 @@ impl UserData for ClipboardEvent {
 
 		fields.add_field_method_get("primary", |_, me| Ok(me.inner.primary()));
 
-		// fields.add_field_method_get("op", |_, me| Ok(me.inner.op().map(IntoStr::into_str)));
+		// fields.add_field_method_get("op", |_, me|
+		// Ok(me.inner.op().map(IntoStr::into_str)));
 
 		fields.add_cached_field("mimes", |lua, me| {
 			if let Some(mimes) = me.inner.mimes() {

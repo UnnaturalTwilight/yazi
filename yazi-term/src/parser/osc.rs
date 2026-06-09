@@ -1,5 +1,4 @@
-
-use crate::{ParseError, Result, parser::{Parser, State, Osc5522Status, Osc5522Type}};
+use crate::{ParseError, Result, parser::{Osc5522Status, Osc5522Type, Parser, State}};
 
 impl Parser {
 	pub(super) fn parse_osc72(&mut self) -> Result<()> {
@@ -62,14 +61,14 @@ impl Parser {
 						state.has_more = true;
 					}
 					"DONE" => state.status = Some(Osc5522Status::DONE),
-					_ => todo!("Errors are not implemented")
+					_ => todo!("Errors are not implemented"),
 				},
 				("type", v) => match v {
 					"read" => state.r#type = Some(Osc5522Type::Read),
 					"write" => state.r#type = Some(Osc5522Type::Write),
 					"wdata" => state.r#type = Some(Osc5522Type::Wdata),
 					"walias" => state.r#type = Some(Osc5522Type::Walias),
-					_ => panic!("invalid type: {v}")
+					_ => panic!("invalid type: {v}"),
 				},
 				("loc", v) => state.primary = v == "primary",
 				("mime", v) => {
@@ -80,16 +79,16 @@ impl Parser {
 						state.mime.push(bytes);
 						state.idx += 1;
 					}
-				},
+				}
 				("name", v) => state.name = v.as_bytes().to_vec(),
 				("pw", v) => state.pw = v.as_bytes().to_vec(),
-				_ => panic!("Unknown metadata: {part}")
+				_ => panic!("Unknown metadata: {part}"),
 			}
 		}
 
 		// Limit payload size to 1MiB to prevent potential DoS
 		// if state.payload.len() + payload.len() > 1 << 20 {
-			// return Err(ParseError::Invalid);
+		// return Err(ParseError::Invalid);
 		// }
 
 		if state.idx >= state.payload.len() {

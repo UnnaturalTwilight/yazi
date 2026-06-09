@@ -25,25 +25,22 @@ impl Display for SetClipboard {
 pub struct EnablePasteEvents;
 
 impl Display for EnablePasteEvents {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "\x1b[?5522h")
-	}
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "\x1b[?5522h") }
 }
 
 /// Disable receiving unsolicited paste events via OSC 5522: `CSI ? 5522 l`
 pub struct DisablePasteEvents;
 
 impl Display for DisablePasteEvents {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "\x1b[?5522l")
-	}
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "\x1b[?5522l") }
 }
 
-/// Read data from clipboard: `OSC 5522 ; type=read : <metadata> ; <base64 MIME list> ST`
+/// Read data from clipboard: `OSC 5522 ; type=read : <metadata> ; <base64 MIME
+/// list> ST`
 pub struct ReadClipboard<'a> {
-	pub mime: &'a [u8],
-	pub pw: &'a [u8],
-	pub name: &'a [u8],
+	pub mime:    &'a [u8],
+	pub pw:      &'a [u8],
+	pub name:    &'a [u8],
 	pub primary: bool,
 }
 
@@ -66,7 +63,8 @@ impl Display for ReadClipboard<'_> {
 	}
 }
 
-/// Read available MIME types from clipboard: `OSC 5522 ; type=read ; <base64 [.]> ST`
+/// Read available MIME types from clipboard: `OSC 5522 ; type=read ; <base64
+/// [.]> ST`
 pub struct ReadClipboardMimes;
 
 impl Display for ReadClipboardMimes {
@@ -109,7 +107,7 @@ impl Display for WriteClipboard<'_> {
 }
 
 pub struct WriteClipboardData<'a> {
-	pub mime: &'a [u8],
+	pub mime:    &'a [u8],
 	pub payload: &'a [u8],
-	pub alias: &'a [u8],
+	pub alias:   &'a [u8],
 }

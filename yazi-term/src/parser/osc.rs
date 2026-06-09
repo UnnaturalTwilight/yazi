@@ -1,4 +1,6 @@
-use crate::{ParseError, Result, parser::{Parser, State}};
+use ratatui::symbols::line::THICK_HORIZONTAL_DOWN;
+
+use crate::{ParseError, Result, parser::{Parser, State, Osc5522Status, Osc5522Type}};
 
 impl Parser {
 	pub(super) fn parse_osc72(&mut self) -> Result<()> {
@@ -26,6 +28,53 @@ impl Parser {
 		// For `t=r`, the presence of a payload indicates more data is coming,
 		// even if `m=1` is not set.
 		if state.r#type == Some(b'r') && !payload.is_empty() {
+			state.has_more = true;
+		}
+
+		// Limit payload size to 1MiB to prevent potential DoS
+		if state.payload.len() + payload.len() > 1 << 20 {
+			return Err(ParseError::Invalid);
+		}
+
+		state.payload.extend(payload);
+		Ok(())
+	}
+
+	pub(super) fn parse_osc5522(&mut self) -> Result<()> {
+		debug_assert!(self.seq.starts_with(b"\x1b]5522;"));
+		debug_assert!(self.seq.ends_with(b"\x1b\\"));
+
+		let mut it = self.seq[7..self.seq.len() - 2].splitn(2, |&b| b == b';');
+		let meta = str::from_utf8(it.next().ok_or(ParseError::Invalid)?)?;
+		let payload = it.next().unwrap_or(&[]);
+
+		let State::Osc5522(state) = &mut self.state else { unreachable!() };
+		state.has_more = false;
+
+		for part in meta.split(':') {
+			match part.split_once('=').ok_or(ParseError::Invalid)? {
+				("status", v) => match v {
+					"OK" => state.status = Some(Osc5522Status::OK),
+					"DATA" => state.status = Some(Osc5522Status::DATA),
+					"DONE" => state.status = Some(Osc5522Status::DONE),
+					_ => todo!("Errors are not implemented")
+				},
+				("type", v) => match v {
+					"read" => state.r#type = Some(Osc5522Type::Read),
+					"write" => state.r#type = Some(Osc5522Type::Write),
+					"wdata" => state.r#type = Some(Osc5522Type::Wdata),
+					"walias" => state.r#type = Some(Osc5522Type::Walias),
+					_ => panic!("invalid type: {v}")
+				},
+				("loc", v) => state.primary = v == "primary",
+				("mime", v) => state.mime = v.as_bytes().to_vec(),
+				("name", v) => state.name = v.as_bytes().to_vec(),
+				("pw", v) => state.pw = v.as_bytes().to_vec(),
+				_ => panic!("Unknown metadata: {part}")
+			}
+		}
+
+		if state.status == Some(Osc5522Status::OK) || state.status == Some(Osc5522Status::DATA) {
 			state.has_more = true;
 		}
 

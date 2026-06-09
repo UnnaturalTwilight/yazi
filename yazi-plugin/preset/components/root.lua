@@ -99,3 +99,16 @@ function Root:drop(event)
 		return c and c.drop and c:drop(event)
 	end
 end
+
+function Root:read5522(event)
+	ya.err("read5522:", tostring(event), tostring(event.type))
+	ya.err("MIMES:", event.mimes)
+	ya.err("DATA:", event.data)
+	ya.err("primary:", event.primary)
+	ya.err("PW:", event.pw)
+	ya.err("name:", event.name)
+end
+
+function Root:write5522(event)
+	ya.err("write5522: " .. tostring(event))
+end
